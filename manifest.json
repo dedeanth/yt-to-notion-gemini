@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "YouTube to Notion - AI Summarizer & Saver",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Summarize YouTube videos with Gemini AI and save video links, AI summaries, and tags directly to Notion.",
   "permissions": [
     "storage",

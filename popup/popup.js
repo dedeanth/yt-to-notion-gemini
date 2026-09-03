@@ -260,9 +260,24 @@ async function handleGenerateSummary() {
 
     currentSummaryData = summary;
 
-    // Populate review section
+    // Populate review section with structured breakdown and numbers
     summaryOverview.value = summary.overview || '';
-    summaryTakeaways.value = (summary.keyTakeaways || []).map(k => `• ${k}`).join('\n');
+
+    let formattedSections = '';
+    if (Array.isArray(summary.detailedBreakdown) && summary.detailedBreakdown.length > 0) {
+      formattedSections = summary.detailedBreakdown.map(sec => {
+        const heading = sec.section_title ? `📌 ${sec.section_title}\n` : '';
+        const pts = (sec.points || []).map(p => `• ${p}`).join('\n');
+        return `${heading}${pts}`;
+      }).join('\n\n');
+    }
+
+    if (Array.isArray(summary.keyTakeaways) && summary.keyTakeaways.length > 0) {
+      if (formattedSections) formattedSections += '\n\n💡 Synthèse des Enjeux :\n';
+      formattedSections += summary.keyTakeaways.map(k => `• ${k}`).join('\n');
+    }
+
+    summaryTakeaways.value = formattedSections || (summary.keyTakeaways || []).map(k => `• ${k}`).join('\n');
 
     currentTags = [...(summary.tags || [])];
     renderTags();
@@ -298,6 +313,7 @@ async function handleSaveToNotion() {
 
   const finalSummaryData = {
     overview: summaryOverview.value.trim(),
+    detailedBreakdown: currentSummaryData?.detailedBreakdown || [],
     keyTakeaways: takeawaysList,
     tags: currentTags
   };

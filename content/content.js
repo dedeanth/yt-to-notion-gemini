@@ -122,58 +122,108 @@
   }
 
   // Fetch and parse captions into readable text
+  function formatTimestamp(seconds) {
+    const s = Math.floor(parseFloat(seconds) || 0);
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `[${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}]`;
+  }
+
+  // Fetch and parse captions into readable text with timestamps
   async function fetchTranscript(captionTracks) {
     if (!captionTracks || !captionTracks.length) return null;
 
-    // Prioritize English or user language track, or take first
-    const lang = (navigator.language || 'en').slice(0, 2).toLowerCase();
+    // Prioritize video's primary or user language track, or take first
+    const lang = (navigator.language || 'fr').slice(0, 2).toLowerCase();
     let track = captionTracks.find(t => t.languageCode?.toLowerCase() === lang) ||
+                captionTracks.find(t => t.languageCode?.toLowerCase().startsWith('fr')) ||
                 captionTracks.find(t => t.languageCode?.toLowerCase().startsWith('en')) ||
                 captionTracks[0];
 
     if (!track?.baseUrl) return null;
 
-    // Try JSON3 format first
+    // 1. Try XML format directly from track.baseUrl as provided
+    try {
+      const res = await fetch(track.baseUrl, { credentials: 'include' });
+      if (res.ok) {
+        const xmlText = await res.text();
+        if (xmlText && xmlText.length > 50) {
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+          const nodes = Array.from(xmlDoc.getElementsByTagName('text'));
+          if (nodes.length > 0) {
+            const lines = nodes.map(n => {
+              const start = n.getAttribute('start') || '0';
+              const text = (n.textContent || '').replace(/&#39;/g, "'").replace(/&quot;/g, '"').trim();
+              return `${formatTimestamp(start)} ${text}`;
+            }).filter(l => l.length > 8);
+            if (lines.length > 5) return lines.join('\n');
+          }
+        }
+      }
+    } catch (e) {
+      // Fall through
+    }
+
+    // 2. Try JSON3 format
     try {
       const jsonUrl = track.baseUrl.includes('fmt=')
         ? track.baseUrl
         : track.baseUrl + '&fmt=json3';
-      const res = await fetch(jsonUrl);
+      const res = await fetch(jsonUrl, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         if (data.events && Array.isArray(data.events)) {
-          const text = data.events
+          const lines = data.events
             .filter(e => e.segs && Array.isArray(e.segs))
-            .map(e => e.segs.map(s => s.utf8 || '').join(''))
-            .join(' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-          if (text.length > 20) return text;
+            .map(e => {
+              const ts = formatTimestamp((e.tStartMs || 0) / 1000);
+              const text = e.segs.map(s => s.utf8 || '').join('').trim();
+              return `${ts} ${text}`;
+            })
+            .filter(l => l.length > 8);
+          if (lines.length > 5) return lines.join('\n');
         }
       }
     } catch (e) {
-      // Fall through to XML format
+      // Fall through
     }
 
-    // Try XML format
+    // 3. Try DOM transcript panel directly from YouTube UI
+    const domTranscript = await fetchTranscriptFromDOM();
+    if (domTranscript) return domTranscript;
+
+    return null;
+  }
+
+  // Fallback: extract transcript directly from YouTube's transcript panel
+  async function fetchTranscriptFromDOM() {
     try {
-      const res = await fetch(track.baseUrl);
-      if (res.ok) {
-        const xmlText = await res.text();
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-        const nodes = Array.from(xmlDoc.getElementsByTagName('text'));
-        const text = nodes
-          .map(n => n.textContent || '')
-          .join(' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-        if (text.length > 20) return text;
+      let segments = document.querySelectorAll('ytd-transcript-segment-renderer');
+      if (!segments || segments.length === 0) {
+        const btn = document.querySelector('ytd-video-description-transcript-section-renderer button') ||
+                    document.querySelector('button[aria-label*="transcription" i], button[aria-label*="transcript" i]');
+        if (btn) {
+          btn.click();
+          await new Promise(r => setTimeout(r, 700));
+          segments = document.querySelectorAll('ytd-transcript-segment-renderer');
+        }
+      }
+
+      if (segments && segments.length > 0) {
+        const lines = Array.from(segments).map(seg => {
+          const time = seg.querySelector('.segment-timestamp')?.textContent?.trim() || '';
+          const text = seg.querySelector('.segment-text, yt-formatted-string')?.textContent?.trim() || '';
+          return time ? `[${time}] ${text}` : text;
+        }).filter(l => l.length > 0);
+
+        if (lines.length > 5) {
+          return lines.join('\n');
+        }
       }
     } catch (e) {
-      console.warn('[YT-Notion] Failed to fetch caption XML:', e);
+      console.warn('[YT-Notion] DOM transcript extraction fallback failed:', e);
     }
-
     return null;
   }
 
@@ -191,7 +241,7 @@
     } catch (e) {
       console.warn('[YT-Notion] Captions fallback failed:', e);
     }
-    return null;
+    return await fetchTranscriptFromDOM();
   }
 
   // Full extraction handler

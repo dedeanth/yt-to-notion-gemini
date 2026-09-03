@@ -226,7 +226,7 @@ export async function createNotionVideoPage({
     object: 'block',
     type: 'heading_2',
     heading_2: {
-      rich_text: [{ type: 'text', text: { content: '✨ AI Summary Overview' } }]
+      rich_text: [{ type: 'text', text: { content: '✨ Résumé & Vue d\'ensemble' } }]
     }
   });
 
@@ -240,13 +240,39 @@ export async function createNotionVideoPage({
     });
   }
 
-  // 3. Key Takeaways Section
+  // 3. Detailed Thematic Sections (Chiffres clés, Analyse, Stratégie...)
+  if (Array.isArray(summaryData.detailedBreakdown) && summaryData.detailedBreakdown.length > 0) {
+    for (const section of summaryData.detailedBreakdown) {
+      if (section.section_title) {
+        childrenBlocks.push({
+          object: 'block',
+          type: 'heading_3',
+          heading_3: {
+            rich_text: chunkToRichText(section.section_title)
+          }
+        });
+      }
+      if (Array.isArray(section.points)) {
+        for (const pt of section.points) {
+          childrenBlocks.push({
+            object: 'block',
+            type: 'bulleted_list_item',
+            bulleted_list_item: {
+              rich_text: chunkToRichText(pt)
+            }
+          });
+        }
+      }
+    }
+  }
+
+  // 4. Key Takeaways Section
   if (summaryData.keyTakeaways && summaryData.keyTakeaways.length > 0) {
     childrenBlocks.push({
       object: 'block',
       type: 'heading_2',
       heading_2: {
-        rich_text: [{ type: 'text', text: { content: '💡 Key Takeaways' } }]
+        rich_text: [{ type: 'text', text: { content: '💡 Points Clés & Enjeux Stratégiques' } }]
       }
     });
 
