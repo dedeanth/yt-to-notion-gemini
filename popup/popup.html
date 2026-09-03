@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube to Notion</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="header-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" fill="#ff0000" stroke="none"/>
+            <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="#ffffff"/>
+          </svg>
+        </div>
+        <span class="header-title">YT to Notion</span>
+        <span class="header-badge">AI</span>
+      </div>
+      <div class="header-actions">
+        <button id="tab-btn-saver" class="tab-btn active" title="Saver">Save</button>
+        <button id="tab-btn-settings" class="tab-btn" title="Settings">⚙️ Settings</button>
+      </div>
+    </header>
+
+    <!-- Notification Toast / Alert -->
+    <div id="global-alert" class="alert hidden">
+      <span id="alert-icon" class="alert-icon"></span>
+      <span id="alert-text" class="alert-text"></span>
+      <button id="alert-close" class="alert-close">&times;</button>
+    </div>
+
+    <!-- MAIN VIEW: SAVER -->
+    <main id="view-saver" class="view active">
+      <!-- Config Missing Banner -->
+      <div id="config-banner" class="banner warning hidden">
+        <span>⚠️ API keys required. Please configure Notion and Gemini.</span>
+        <button id="banner-settings-btn" class="btn btn-sm btn-secondary">Open Settings</button>
+      </div>
+
+      <!-- Non-YouTube Banner -->
+      <div id="not-yt-banner" class="banner info hidden">
+        <span>Please open a YouTube video page to use this extension.</span>
+      </div>
+
+      <!-- Video Preview Card -->
+      <section id="video-card" class="video-card hidden">
+        <div class="thumbnail-wrapper">
+          <img id="video-thumbnail" src="" alt="Thumbnail" />
+          <span id="transcript-badge" class="badge badge-transcript">Captions available</span>
+        </div>
+        <div class="video-info">
+          <h3 id="video-title" class="video-title">Loading video title...</h3>
+          <p id="video-channel" class="video-channel">Channel</p>
+        </div>
+      </section>
+
+      <!-- AI Action Bar -->
+      <section id="ai-action-bar" class="ai-action-bar hidden">
+        <button id="generate-summary-btn" class="btn btn-primary btn-full">
+          <span class="btn-icon">✨</span>
+          <span id="generate-btn-text">Generate Summary with Gemini</span>
+        </button>
+      </section>
+
+      <!-- Loading State -->
+      <div id="loading-state" class="loading-state hidden">
+        <div class="spinner"></div>
+        <p id="loading-text">Analyzing video & generating summary with Gemini...</p>
+      </div>
+
+      <!-- Summary & Review Section -->
+      <section id="review-section" class="review-section hidden">
+        <div class="section-header">
+          <h4>Video Summary</h4>
+          <button id="regenerate-btn" class="btn-text" title="Regenerate with Gemini">🔄 Regenerate</button>
+        </div>
+
+        <div class="form-group">
+          <label for="summary-overview">Overview</label>
+          <textarea id="summary-overview" class="input-textarea" rows="3" placeholder="AI overview..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="summary-takeaways">Key Takeaways (one per line)</label>
+          <textarea id="summary-takeaways" class="input-textarea" rows="4" placeholder="- Takeaway 1&#10;- Takeaway 2"></textarea>
+        </div>
+
+        <!-- Tags / Categories -->
+        <div class="form-group">
+          <label>Notion Tags</label>
+          <div id="tags-chip-container" class="tags-container">
+            <!-- Chips rendered here -->
+          </div>
+          <div class="tag-input-wrapper">
+            <input type="text" id="new-tag-input" class="input-text input-sm" placeholder="Add custom tag and press Enter" />
+            <button id="add-tag-btn" class="btn btn-sm btn-secondary">Add</button>
+          </div>
+        </div>
+
+        <!-- Notion Target & Save Button -->
+        <div class="notion-target-info">
+          <span class="target-label">Saving to:</span>
+          <span id="target-db-name" class="target-db-badge">Not configured</span>
+        </div>
+
+        <button id="save-to-notion-btn" class="btn btn-success btn-full">
+          <span class="btn-icon">📥</span>
+          <span id="save-btn-text">Save to Notion</span>
+        </button>
+
+        <!-- Saved Success Box -->
+        <div id="save-success-box" class="save-success-box hidden">
+          <div class="success-message">
+            <span class="success-icon">✅</span>
+            <span>Successfully saved to Notion!</span>
+          </div>
+          <a id="open-notion-link" href="#" target="_blank" class="btn btn-secondary btn-full">
+            Open in Notion ↗
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <!-- SETTINGS VIEW -->
+    <main id="view-settings" class="view">
+      <div class="settings-content">
+        <h3 class="settings-title">Configuration</h3>
+
+        <!-- Gemini Section -->
+        <div class="settings-group">
+          <h4>Google Gemini API</h4>
+          <p class="field-hint">
+            Get your free API key at
+            <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>.
+          </p>
+          <div class="form-group">
+            <label for="gemini-api-key">Gemini API Key</label>
+            <input type="password" id="gemini-api-key" class="input-text" placeholder="AIzaSy..." autocomplete="off" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group half">
+              <label for="gemini-model">Model</label>
+              <select id="gemini-model" class="input-select">
+                <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Fast & Smart)</option>
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+              </select>
+            </div>
+            <div class="form-group half">
+              <label for="summary-style">Summary Style</label>
+              <select id="summary-style" class="input-select">
+                <option value="bullet_points" selected>Key Bullet Points</option>
+                <option value="detailed">Comprehensive Detail</option>
+                <option value="concise">Short Executive TL;DR</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notion Section -->
+        <div class="settings-group">
+          <h4>Notion Database</h4>
+          <p class="field-hint">
+            Create an integration at
+            <a href="https://www.notion.so/profile/integrations" target="_blank">Notion Developers</a>,
+            then share your database with it.
+          </p>
+
+          <div class="form-group">
+            <label for="notion-token">Notion Internal Integration Token</label>
+            <input type="password" id="notion-token" class="input-text" placeholder="secret_..." autocomplete="off" />
+          </div>
+
+          <div class="form-group">
+            <label for="notion-db-id">Database ID or Database URL</label>
+            <input type="text" id="notion-db-id" class="input-text" placeholder="https://notion.so/... or 32-char ID" />
+          </div>
+
+          <button id="test-notion-btn" class="btn btn-secondary btn-full">
+            <span>🔗 Test Connection & Auto-Map Properties</span>
+          </button>
+          <div id="notion-status" class="test-status hidden"></div>
+        </div>
+
+        <!-- Property Mapping (Optional Customization) -->
+        <div id="mapping-group" class="settings-group">
+          <h4>Database Property Mapping</h4>
+          <div class="form-group">
+            <label for="map-title">Title Property</label>
+            <select id="map-title" class="input-select">
+              <option value="Name">Name (default)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="map-url">URL Property</label>
+            <select id="map-url" class="input-select">
+              <option value="URL">URL (default)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="map-tags">Tags Property (Multi-select)</label>
+            <select id="map-tags" class="input-select">
+              <option value="Tags">Tags (default)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="map-summary">Summary Property (Optional Rich Text)</label>
+            <select id="map-summary" class="input-select">
+              <option value="">(None - use page body)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Save Settings -->
+        <div class="settings-actions">
+          <button id="save-settings-btn" class="btn btn-primary btn-full">Save Settings</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

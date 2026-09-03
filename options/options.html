@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube to Notion Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="brand">
+        <div class="logo">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" fill="#ff0000"/>
+            <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="#ffffff"/>
+          </svg>
+        </div>
+        <div>
+          <h1>YouTube to Notion Settings</h1>
+          <p class="subtitle">Configure your Gemini AI and Notion Database credentials</p>
+        </div>
+      </div>
+    </header>
+
+    <div id="status-toast" class="toast hidden"></div>
+
+    <div class="content-grid">
+      <!-- Left Column: Settings Forms -->
+      <section class="settings-column">
+        <!-- Gemini Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2>✨ Google Gemini AI Configuration</h2>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="gemini-api-key">Gemini API Key</label>
+              <input type="password" id="gemini-api-key" class="form-input" placeholder="AIzaSy..." />
+              <span class="hint">
+                Get a free key at <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>.
+              </span>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="gemini-model">Model</label>
+                <select id="gemini-model" class="form-select">
+                  <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Recommended)</option>
+                  <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="summary-style">Summary Format</label>
+                <select id="summary-style" class="form-select">
+                  <option value="bullet_points" selected>Key Bullet Points & Takeaways</option>
+                  <option value="detailed">Comprehensive Deep Dive</option>
+                  <option value="concise">Executive Brief (TL;DR)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notion Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2>📓 Notion Database Configuration</h2>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="notion-token">Notion Internal Integration Token</label>
+              <input type="password" id="notion-token" class="form-input" placeholder="secret_..." />
+              <span class="hint">
+                Create one at <a href="https://www.notion.so/profile/integrations" target="_blank">notion.so/profile/integrations</a>.
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label for="notion-db-id">Notion Database ID or Full URL</label>
+              <input type="text" id="notion-db-id" class="form-input" placeholder="Paste your Notion database URL or 32-character ID" />
+              <span class="hint">
+                Remember to invite your integration to the database via Notion's "..." menu -> Connections!
+              </span>
+            </div>
+
+            <div class="actions-group">
+              <button id="test-connection-btn" class="btn btn-secondary">
+                🔍 Test Connection & Fetch Schema
+              </button>
+            </div>
+
+            <div id="connection-result" class="connection-status hidden"></div>
+
+            <!-- Property Mapping -->
+            <div class="mapping-section">
+              <h3>Property Mapping</h3>
+              <p class="section-desc">Map video fields to your Notion database properties:</p>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="map-title">Video Title</label>
+                  <select id="map-title" class="form-select">
+                    <option value="Name">Name (title)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="map-url">Video URL</label>
+                  <select id="map-url" class="form-select">
+                    <option value="URL">URL (url)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="map-tags">Tags</label>
+                  <select id="map-tags" class="form-select">
+                    <option value="Tags">Tags (multi_select)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="map-summary">Summary (Optional Property)</label>
+                  <select id="map-summary" class="form-select">
+                    <option value="">(Save in Page Body only)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-actions">
+          <button id="save-btn" class="btn btn-primary btn-large">💾 Save All Settings</button>
+        </div>
+      </section>
+
+      <!-- Right Column: Step-by-Step Guide -->
+      <aside class="guide-column">
+        <div class="card guide-card">
+          <h3>Quick Setup Guide</h3>
+
+          <div class="step">
+            <span class="step-num">1</span>
+            <div>
+              <strong>Get Google Gemini API Key</strong>
+              <p>Visit <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>, log in with Google, and click "Create API key". Paste it into the Gemini API Key field.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <span class="step-num">2</span>
+            <div>
+              <strong>Create Notion Internal Integration</strong>
+              <p>Go to <a href="https://www.notion.so/profile/integrations" target="_blank">notion.so/profile/integrations</a>, click "New integration", name it (e.g. <em>YouTube Saver</em>), and copy the <code>Internal Integration Secret</code>.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <span class="step-num">3</span>
+            <div>
+              <strong>Connect Notion Database</strong>
+              <p>Open your target database in Notion, click the <code>...</code> (top right) &rarr; <code>Connections</code> &rarr; <code>Connect to</code> &rarr; select your integration. Then copy the database link and paste it here.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <span class="step-num">4</span>
+            <div>
+              <strong>Test & Save</strong>
+              <p>Click "Test Connection & Fetch Schema" to auto-detect properties, then click "Save All Settings". You're ready to summarize and save!</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>
