@@ -3,10 +3,15 @@
 
 export async function summarizeVideoWithGemini({
   apiKey,
-  model = 'gemini-2.5-flash',
+  model = 'gemini-3.6-flash',
   style = 'bullet_points',
   videoData
 }) {
+  let targetModel = (model || 'gemini-3.6-flash').trim();
+  if (targetModel === 'gemini-2.5-flash') {
+    targetModel = 'gemini-3.6-flash';
+  }
+
   if (!apiKey || !apiKey.trim()) {
     throw new Error('Gemini API key is required. Please set it in the extension settings.');
   }
@@ -60,7 +65,7 @@ Instructions:
   "tags": ["Tag1", "Tag2", "Tag3", "Tag4"]
 }`;
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey.trim())}`;
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(targetModel)}:generateContent?key=${encodeURIComponent(apiKey.trim())}`;
 
   const payload = {
     system_instruction: {

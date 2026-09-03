@@ -67,7 +67,15 @@ async function loadSavedSettings() {
   ]);
 
   if (data.geminiApiKey) inputGeminiKey.value = data.geminiApiKey;
-  if (data.geminiModel) selectGeminiModel.value = data.geminiModel;
+  if (data.geminiModel) {
+    const model = data.geminiModel === 'gemini-2.5-flash' ? 'gemini-3.6-flash' : data.geminiModel;
+    selectGeminiModel.value = model;
+    if (data.geminiModel === 'gemini-2.5-flash') {
+      await chrome.storage.local.set({ geminiModel: 'gemini-3.6-flash' });
+    }
+  } else {
+    selectGeminiModel.value = 'gemini-3.6-flash';
+  }
   if (data.summaryStyle) selectSummaryStyle.value = data.summaryStyle;
   if (data.notionToken) inputNotionToken.value = data.notionToken;
   if (data.notionDbId) inputNotionDbId.value = data.notionDbId;

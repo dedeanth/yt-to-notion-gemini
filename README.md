@@ -7,7 +7,7 @@ A modern Chrome Extension (Manifest V3) that summarizes YouTube videos using **G
 ## ✨ Features
 
 - 🎯 **One-Click Video Capture**: Automatically extracts video title, author, URL, thumbnail, and full caption transcript.
-- 🧠 **Gemini AI Summarization**: Uses Google Gemini (`gemini-2.5-flash` or `gemini-1.5-flash`) to generate structured overviews, bulleted takeaways, and smart categorization tags.
+- 🧠 **Gemini AI Summarization**: Uses Google Gemini (`gemini-3.6-flash` or `gemini-1.5-flash`) to generate structured overviews, bulleted takeaways, and smart categorization tags.
 - 🏷️ **Interactive Tag Editor**: Review, edit, add, or remove tags directly in the popup before saving.
 - 📓 **Rich Notion Formatting**:
   - Sets database properties: **Title**, **Video URL**, and **Multi-Select Tags**.

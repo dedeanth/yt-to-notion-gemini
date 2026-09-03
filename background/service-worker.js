@@ -6,7 +6,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   const existing = await chrome.storage.local.get(['geminiModel', 'summaryStyle', 'mapping']);
 
   const defaults = {};
-  if (!existing.geminiModel) defaults.geminiModel = 'gemini-2.5-flash';
+  if (!existing.geminiModel || existing.geminiModel === 'gemini-2.5-flash') defaults.geminiModel = 'gemini-3.6-flash';
   if (!existing.summaryStyle) defaults.summaryStyle = 'bullet_points';
   if (!existing.mapping) {
     defaults.mapping = {

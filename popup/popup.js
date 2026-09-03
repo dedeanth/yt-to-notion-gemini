@@ -9,7 +9,7 @@ let currentSummaryData = null;
 let currentTags = [];
 let userConfig = {
   geminiApiKey: '',
-  geminiModel: 'gemini-2.5-flash',
+  geminiModel: 'gemini-3.6-flash',
   summaryStyle: 'bullet_points',
   notionToken: '',
   notionDbId: '',
@@ -336,7 +336,14 @@ async function loadSettings() {
   ]);
 
   if (stored.geminiApiKey) userConfig.geminiApiKey = stored.geminiApiKey;
-  if (stored.geminiModel) userConfig.geminiModel = stored.geminiModel;
+  if (stored.geminiModel) {
+    userConfig.geminiModel = stored.geminiModel === 'gemini-2.5-flash' ? 'gemini-3.6-flash' : stored.geminiModel;
+    if (stored.geminiModel === 'gemini-2.5-flash') {
+      await chrome.storage.local.set({ geminiModel: 'gemini-3.6-flash' });
+    }
+  } else {
+    userConfig.geminiModel = 'gemini-3.6-flash';
+  }
   if (stored.summaryStyle) userConfig.summaryStyle = stored.summaryStyle;
   if (stored.notionToken) userConfig.notionToken = stored.notionToken;
   if (stored.notionDbId) userConfig.notionDbId = stored.notionDbId;
@@ -345,7 +352,7 @@ async function loadSettings() {
 
   // Fill form inputs
   inputGeminiKey.value = userConfig.geminiApiKey || '';
-  selectGeminiModel.value = userConfig.geminiModel || 'gemini-2.5-flash';
+  selectGeminiModel.value = userConfig.geminiModel || 'gemini-3.6-flash';
   selectSummaryStyle.value = userConfig.summaryStyle || 'bullet_points';
   inputNotionToken.value = userConfig.notionToken || '';
   inputNotionDbId.value = userConfig.notionDbId || '';
