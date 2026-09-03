@@ -482,6 +482,10 @@ newTagInput.addEventListener('keydown', (e) => {
 
 // Initialize on popup open
 document.addEventListener('DOMContentLoaded', async () => {
+  const versionEl = document.getElementById('extension-version');
+  if (versionEl && chrome.runtime?.getManifest) {
+    versionEl.textContent = `v${chrome.runtime.getManifest().version}`;
+  }
   await loadSettings();
   await loadActiveVideo();
 });

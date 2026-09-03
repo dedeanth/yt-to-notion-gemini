@@ -154,4 +154,10 @@ async function handleSave() {
 
 testBtn.addEventListener('click', handleTest);
 saveBtn.addEventListener('click', handleSave);
-document.addEventListener('DOMContentLoaded', loadSavedSettings);
+document.addEventListener('DOMContentLoaded', () => {
+  const vEl = document.getElementById('options-version');
+  if (vEl && chrome.runtime?.getManifest) {
+    vEl.textContent = `v${chrome.runtime.getManifest().version}`;
+  }
+  loadSavedSettings();
+});
